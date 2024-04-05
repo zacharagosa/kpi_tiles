@@ -1,6 +1,7 @@
 const path = require('path');
 
 module.exports = {
+  mode: 'development',
   entry: './src/index.js',
   output: {
     filename: 'bundle_kpi.js',
@@ -34,7 +35,8 @@ module.exports = {
       {
         test: /\.css$/i,
         use: [
-          'style-loader'
+          'style-loader',
+          'css-loader'
         ]
       }
     ]
