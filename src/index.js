@@ -29,46 +29,6 @@ looker.plugins.visualizations.add({
         }
       }
     },
-    button_list: {
-      type: "object_list",
-      label: 'Button',
-      section: 'Buttons',
-      newItem: {
-        value: '',
-        icon: 'Public'
-      },
-      options: {
-        value: {
-          label: 'Button Name',
-          type: 'string',
-          default: '',
-          placeholder: 'The display name for the buttons'
-        },
-        is_looker:{
-          label: 'Are these Looker links?',
-          type: 'string',
-          default: 'no',
-          display: 'select',
-          values: [{'Yes': 'yes'}, {'No': 'no'}]
-        },
-        icon: {
-          label: 'Icon Name',
-          type: 'string',
-          default: 'Public',
-          placeholder: 'The name of icon for the button, from Looker Components',
-          display: 'select',
-          values: [{'Dashboard': 'Dashboard'},
-          {'Public': 'Public'},
-          {'Account': 'Account'},
-          {'ChartBar': 'ChartBar'},
-          {'Code': 'Code'},
-          {'Dashboard': 'Dashboard'},
-          {'Notes': 'Notes'}
-        ],
-          order: 1
-        }
-      }
-    }
   },
 
   // Set up the initial state of the visualizationval[props.vertical_col].value
@@ -104,18 +64,6 @@ looker.plugins.visualizations.add({
       return;
     }
 
-
-    if (config.button_list){
-      if(config.button_list.length > queryResponse.fields.dimensions.length - 3){
-        this.addError({title: "Not Enough Fields", message: "You have more buttons than button fields - remove a button or add another dimension"});
-        return
-      }
-      else {
-        var buttons = config.button_list.map(function(button, i) {
-          return {'column': queryResponse.fields.dimensions[3+i].name, 'name':  button.value, 'icon': button.icon};
-        });
-      }
-    }
 
     // update the state with our new data
     console.log(queryResponse)
@@ -163,6 +111,7 @@ export function TileGroup(props) {
               key={i}
               kpi={val[props.kpi_col].value}
               value={props.value_col ? val[props.value_col].value: null}
+              kpi_target={props.target_col ? val[props.target_col].value: null}
               status={props.status_col ? val[props.status_col].value: null }
               rendered_value={props.rendered_val_col ? val[props.rendered_val_col].value: null }
               array_of_values={
@@ -172,10 +121,6 @@ export function TileGroup(props) {
               }             
              unit={props.unit_col ? val[props.unit_col].value: null }
              change={props.change_col ? val[props.change_col].value: null }
-
-
-              // buttons={props.buttons ? props.buttons.map(function(button,i){
-              //   return {'name': button.name, 'link': val[button.column].value, 'icon': button.icon}}) : null}
             />
           )
         }

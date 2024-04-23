@@ -4,13 +4,12 @@ import Grid from '@mui/material/Grid';
 import {  ThemeProvider, createTheme,  } from '@mui/material/styles';
 import myTheme from './theme.js';
 
-
 import Card from '@mui/material/Card';
 import {CardHeader, CardMedia, CardContent, CardActions, Collapse, IconButton, IconButtonProps, Alert, AlertTitle} from '@mui/material';
 import {ArrowUpward,ArrowDownward, Share, Favorite,  MoreVert, ExpandMore} from '@mui/icons-material'; 
 import Typography from '@mui/material/Typography';
 import { SparkLineChart } from '@mui/x-charts/SparkLineChart';
-import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
+import {   GaugeContainer,GaugeValueArc,GaugeReferenceArc,useGaugeState } from '@mui/x-charts/Gauge';
 import { lime, purple } from '@mui/material/colors';
 
 export default function Tile (props) {
@@ -23,6 +22,30 @@ export default function Tile (props) {
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
+
+  function GaugePointer() {
+      const { valueAngle, outerRadius, cx, cy } = useGaugeState();
+
+      if (valueAngle === null) {
+        // No value to display
+        return null;
+      }
+
+      const target = {
+        x: cx + outerRadius * Math.sin(valueAngle),
+        y: cy - outerRadius * Math.cos(valueAngle),
+      };
+      return (
+        <g>
+          <circle cx={cx} cy={cy} r={5} fill="black" />
+          <path
+            d={`M ${cx} ${cy} L ${target.x} ${target.y}`}
+            stroke="black"
+            strokeWidth={5}
+          />
+        </g>
+      );
+  }
 
   const isPositiveChange = props.change >= 0;
 
@@ -131,20 +154,19 @@ export default function Tile (props) {
                </Box>
             ):(
               <Box height={100}>
-                      <Gauge
-                        value={75}
-                        startAngle={-110}
-                        endAngle={110}
-                        sx={{
-                          [`& .${gaugeClasses.valueText}`]: {
-                            fontSize: 15,
-                            transform: 'translate(0px, 0px)',
-                          },
-                        }}
-                        text={
-                           ({ value, valueMax }) => `${value} / ${valueMax}`
-                        }
-                      />
+
+                        <GaugeContainer
+                          width={100}
+                          height={100}
+                          startAngle={-110}
+                          endAngle={110}
+                          value={(props.value / props.kpi_target) * 100}
+                        >
+                          <GaugeReferenceArc />
+                          <GaugeValueArc />
+                          <GaugePointer />
+                        </GaugeContainer>
+          
               </Box>
               )
 
