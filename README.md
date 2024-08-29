@@ -21,6 +21,11 @@ This custom visualization presents data in an interactive tile-based layout, off
     *   Create a new visualization or edit an existing one.
     *   In the visualization settings, select the "Tile Visualization" from the list of available visualizations.
 
+
+![Image](https://github.com/zacharagosa/kpi_tiles/blob/f9be5823001e3b69caf97cb611adf8756e7e8a1d/tile_viz.png)
+![Dataset](https://github.com/zacharagosa/kpi_tiles/blob/f9be5823001e3b69caf97cb611adf8756e7e8a1d/data_structure.png)
+
+
 **Configuration**
 
 The visualization offers the following configuration options:
