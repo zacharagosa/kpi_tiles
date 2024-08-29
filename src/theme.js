@@ -27,10 +27,10 @@ const myTheme = createTheme({
 
 
   typography: {
-    fontFamily: "Roboto",
+    fontFamily: "sans-serif",
     h1: {
       fontSize: '3rem', // Adjust font size as needed
-      fontWeight: 600,   // Set font weight
+      fontWeight: 300,   // Set font weight
       lineHeight: 1.2,  // Adjust line height if desired
     },
   },

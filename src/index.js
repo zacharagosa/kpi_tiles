@@ -66,23 +66,103 @@ looker.plugins.visualizations.add({
 
 
     // update the state with our new data
-    console.log(queryResponse)
+
+function pivotToEAV(data, metadata) {
+  console.log(metadata.fields.measures[0].description);
+
+  const pivotedData = [];
+  const statusOptions = ["Unusual", "Alert", "Normal"];
+  let entityId = 0; // Start with the initial entity ID
+
+      if (data.length > 0) {
+        const firstRow = data[0];
+        let isFirstObject = true; // Flag to track the first iteration
+
+        console.log(metadata)
+        for (const [attribute, value] of Object.entries(firstRow)) {
+              if (isFirstObject) {
+              isFirstObject = false; // No longer the first object
+              continue; // Skip to the next iteration of the loop
+            }
+          const valuesByKey = extractValues(data, attribute);
+            const roundedLastValues = valuesByKey.map(val => {
+                if (typeof val === 'number' && Math.round(val) === 0) {
+                    return Math.round(val * 1000) / 1000; // Round to 2 digits
+                } else {
+                    return val; // Leave as is if not a number or already rounds to non-zero
+                }
+            });
+
+            const target = calculateTarget(valuesByKey);
+
+            // Ensure metadata field exists before creating the object
+          if (metadata.fields.measures[entityId] && metadata.fields.measures[entityId].name) {
+              const [metricDescription, metricDirection] = metadata.fields.measures[entityId].description.split("|")
+
+              const pivotedObject = {
+              entity: entityId,
+              attribute: metadata.fields.measures[entityId] ? metadata.fields.measures[entityId].label_short : null,
+              value: value.value,
+              rendered_value: value.rendered,
+              status: getStatus(calculateChange(valuesByKey)),
+              last_values: roundedLastValues,
+              change: calculateChange(valuesByKey),
+              target: target,
+              positive_good: metricDirection === "direction:higher",
+              unit: metricDescription,
+              links: metadata.data[entityId][metadata.fields.measures[entityId].name].links
+            };
+
+            pivotedData.push(pivotedObject);
+            entityId++
+          }
+        }
+      }
+
+      return pivotedData;
+
+      // Helper Functions
+      function extractValues(data, attribute) {
+        const values = [];
+        Object.keys(data).forEach((key) => {
+          values.push(data[key][attribute].value);
+        });
+        return values;
+      }
+
+      function calculateSum(values) {
+        return values.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+      }
+
+      function calculateTarget(values) {
+        return calculateSum(values) / values.length;
+      }
+
+    function getStatus(change) {
+        if (Math.abs(change) > 10) {
+            return "Alert";
+        } else if (Math.abs(change) >= 5 && Math.abs(change) <= 10) {
+            return "Unusual";
+        } else {
+            return "Normal";
+        }
+
+    }
+      function calculateChange(values) {
+        return ((values[0] - values[1]) / values[0]) * 100.0;
+      }
+
+
+}
+
+const result = pivotToEAV(queryResponse.data, queryResponse);
+console.log(result);
+
 
 
     this.chart = ReactDOM.render(
         <TileGroup
-          data={data} 
-          kpi_col={queryResponse.fields.dimensions[0].name}
-          value_col={queryResponse.fields.dimensions[1].name}
-          status_col={queryResponse.fields.dimensions[2].name}
-          rendered_val_col={queryResponse.fields.dimensions[3].name}
-          target_col={queryResponse.fields.dimensions[4].name}
-          unit_col={queryResponse.fields.dimensions[5].name}
-          array_of_values_col={queryResponse.fields.dimensions[7].name}
-          change_col={queryResponse.fields.dimensions[6].name}
-
-          // buttons = {buttons ? buttons : null}
-          // colorList={config.color_list}
+          data={result} 
          />,
       this._vis_element
     );
@@ -101,32 +181,31 @@ export function TileGroup(props) {
       display: 'grid',
       columnGap: 1,
       rowGap: 1,
+
       gridTemplateColumns: 'repeat(3, 1fr)',
       }} 
     >
 
       {
-          props.data.map((val, i) => 
+          props.data.map((tileData, i) => 
             <Tile 
               key={i}
-              kpi={val[props.kpi_col].value}
-              value={props.value_col ? val[props.value_col].value: null}
-              kpi_target={props.target_col ? val[props.target_col].value: null}
-              status={props.status_col ? val[props.status_col].value: null }
-              rendered_value={props.rendered_val_col ? val[props.rendered_val_col].value: null }
-              array_of_values={
-                props.array_of_values_col && val[props.array_of_values_col] && val[props.array_of_values_col].value
-                  ? val[props.array_of_values_col].value.split(',')
-                  : null
-              }             
-             unit={props.unit_col ? val[props.unit_col].value: null }
-             change={props.change_col ? val[props.change_col].value: null }
+              kpi={tileData.attribute}
+              value={tileData.value}
+              kpi_target={tileData.target}
+              status={tileData.status}
+              rendered_value={tileData.rendered_value }
+              array_of_values={tileData.last_values}             
+              unit={tileData.unit }
+              change={tileData.change }
+              links={tileData.links }
+              positive_good = {tileData.positive_good}
             />
           )
         }
     </Box>
   )
-};
+}
 
 
 

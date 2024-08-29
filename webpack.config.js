@@ -12,6 +12,8 @@ module.exports = {
       key: './localhost+1-key.pem',
       cert: './localhost+1.pem',
     },
+    disableHostCheck: true,
+
     index: 'index.html',
     hot: true,
     headers: {
